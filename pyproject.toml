@@ -18,9 +18,10 @@ packages = [{include = "imapsync_scriptgen", from = "src"}]
 
 [tool.taskipy.tasks]
 lint = "black . && ruff check"
+types = "mypy -p src.imapsync_scriptgen"
 test = "pytest --cov=src.imapsync_scriptgen --cov-report=term-missing"
 coverage = "coverage html"
-all = "task lint && task test && task coverage"
+all = "task lint && task types && task test && task coverage"
 
 [tool.coverage.run]
 branch = true
