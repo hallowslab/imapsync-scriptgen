@@ -2,6 +2,10 @@
 
 Generate `imapsync` command scripts from user credential lists.
 
+![Tests Status](./tests-badge.svg?dummy=8484744)
+![Coverage Status](./coverage-badge.svg?dummy=8484744)
+![Flake8 Status](./flake8-badge.svg?dummy=8484744)
+
 ---
 
 ## Overview
