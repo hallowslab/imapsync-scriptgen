@@ -1,9 +1,10 @@
 from src.imapsync_scriptgen.cli import main
+from src.imapsync_scriptgen.models import ImapSyncCommand
 
 
 def test_cli_runs(monkeypatch, tmp_path):
     input_file = tmp_path / "input.txt"
-    input_file.write_text("user@example.com;pass\n")
+    input_file.write_text("user@example.com pass\n")
 
     # Mock argv
     monkeypatch.setattr(
@@ -29,15 +30,23 @@ def test_cli_runs(monkeypatch, tmp_path):
             called["cfg"] = cfg
 
         def line_generator(self, fh):
-            return ["user@example.com pass"]
+            # Should return objects
+            return [
+                ImapSyncCommand(
+                    argv=["imapsync", "arg1"],
+                    redacted_argv=["imapsync", "arg1"],
+                    logfile="log",
+                )
+            ]
 
         def write_output(self, lines):
             called["lines"] = lines
 
-    monkeypatch.setattr("src.imapsync_scriptgen.cli.ScriptGenerator", DummyGen)
+    monkeypatch.setattr("src.imapsync_scriptgen.cli.UnsafeScriptGenerator", DummyGen)
 
     main()
 
     assert called["cfg"].host1 == "old.example.com"
     assert called["cfg"].dry_run is True
-    assert called["lines"] == ["user@example.com pass"]
+    assert len(called["lines"]) == 1
+    assert called["lines"][0].argv == ["imapsync", "arg1"]

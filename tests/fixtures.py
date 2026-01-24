@@ -1,5 +1,5 @@
 import pytest
-from src.imapsync_scriptgen.generator import ScriptGenerator
+from src.imapsync_scriptgen.cli_adapter import UnsafeScriptGenerator
 from src.imapsync_scriptgen.utils import GeneratorConfig
 
 
@@ -16,4 +16,4 @@ def cfg():
 
 @pytest.fixture
 def gen(cfg):
-    return ScriptGenerator(cfg)
+    return UnsafeScriptGenerator(cfg)

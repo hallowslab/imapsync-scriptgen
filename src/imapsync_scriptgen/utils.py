@@ -1,9 +1,13 @@
+import re
 import logging
 from dataclasses import dataclass, field
-from typing import Optional, List, Iterable, Generator, Dict
-import re
+from typing import Optional, TypeVar, List, Iterable, Generator, Dict
+
+from .models import ImapSyncSpec
 
 logger = logging.getLogger("pymap_core.utils")
+
+T = TypeVar("T")
 
 
 @dataclass
@@ -17,6 +21,45 @@ class GeneratorConfig:
     logdir: str = "/var/log/pymap"
     additional_known_hosts: Optional[List[List[str]]] = field(default_factory=list)
     config: Optional[Dict] = field(default_factory=dict)
+
+
+class DomainHelper:
+    """
+    Safe helper for domain-related operations.
+    Works directly with ImapSyncSpec; no plaintext passwords required.
+    """
+
+    DOMAIN_IDENTIFIER = re.compile(r"^.+@(?P<domain>[^\s]+)")
+
+    @classmethod
+    def match_domain(cls, email: str) -> Optional[str]:
+        """
+        Extracts domain from a single email string.
+        Returns None if no valid domain is found.
+        """
+        match = cls.DOMAIN_IDENTIFIER.match(email)
+        if match:
+            return match.group("domain")
+        return None
+
+    @classmethod
+    def extract_domains_from_spec(cls, spec: ImapSyncSpec) -> List[str]:
+        """
+        Returns a list of unique domains from the usernames in the spec.
+        """
+        domains = []
+        for user in (spec.user1, spec.user2):
+            domain = cls.match_domain(user)
+            if domain and domain not in domains:
+                domains.append(domain)
+        return domains
+
+    @classmethod
+    def domains_as_string(cls, spec: ImapSyncSpec) -> str:
+        """
+        Returns a comma-separated string of domains.
+        """
+        return ",".join(cls.extract_domains_from_spec(spec))
 
 
 def verify_host(hostname: str, known_hosts: Optional[List[List[str]]] = None) -> str:
@@ -44,13 +87,11 @@ def verify_host(hostname: str, known_hosts: Optional[List[List[str]]] = None) ->
     return hostname
 
 
-def batch_lines(
-    lines: Iterable[str], batch_size: int
-) -> Generator[List[str], None, None]:
+def batch_lines(lines: Iterable[T], batch_size: int) -> Generator[List[T], None, None]:
     """
     Yield lists of lines, each of length batch_size (except possibly the last one).
     """
-    buffer: List[str] = []
+    buffer: List[T] = []
     for line in lines:
         buffer.append(line)
         if len(buffer) >= batch_size:
