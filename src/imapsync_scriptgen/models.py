@@ -28,4 +28,4 @@ class ImapSyncSpec:
     pass2_ref: str
     logfile: str
     extra_args: Optional[str] = None
-    logdir: str = "/var/log/pymap"
+    logdir: str = "/var/log/imapsync-scriptgen"
