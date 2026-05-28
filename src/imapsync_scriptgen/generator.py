@@ -59,7 +59,6 @@ def generate(spec: ImapSyncSpec, runtime_secrets: Dict[str, str]) -> ImapSyncCom
         spec.logdir,
         "--logfile",
         spec.logfile,
-        "--addheader",
     ]
 
     if spec.extra_args:
