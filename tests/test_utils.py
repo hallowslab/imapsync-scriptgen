@@ -1,4 +1,53 @@
-from src.imapsync_scriptgen.utils import GeneratorConfig, verify_host, batch_lines
+import pytest
+
+from src.imapsync_scriptgen.utils import (
+    GeneratorConfig,
+    verify_host,
+    batch_lines,
+    DomainHelper,
+)
+from src.imapsync_scriptgen.models import ImapSyncSpec
+
+
+# Test match_domain
+@pytest.mark.parametrize(
+    "input_email, expected",
+    [
+        ("user@domain.com", "domain.com"),
+        ("no-at-symbol.com.pt", None),
+        ("user@sub.domain.net", "sub.domain.net"),
+        ("john.doe@sub.domain.co.uk", "sub.domain.co.uk"),
+    ],
+)
+def test_match_domain(input_email, expected):
+    assert DomainHelper.match_domain(input_email) == expected
+
+
+# Test extract_domains_from_spec
+@pytest.mark.parametrize(
+    "user1, user2, expected_domains",
+    [
+        ("user@domain.com", "user2@other.com", ["domain.com", "other.com"]),
+        ("no-at-symbol.com.pt", "user@valid.com", ["valid.com"]),
+        ("invalid", "stillinvalid", []),
+        ("user@sub.domain.net", "user2@another.net", ["sub.domain.net", "another.net"]),
+        ("john.doe@sub.domain.co.uk", "john.doe2@co.uk", ["sub.domain.co.uk", "co.uk"]),
+        ("alice@x.y.z.com", "bob@ross.com", ["x.y.z.com", "ross.com"]),
+    ],
+)
+def test_extract_domains_from_spec(user1, user2, expected_domains):
+    # Create minimal ImapSyncSpec with dummy values for fields not needed in the test
+    spec = ImapSyncSpec(
+        host1="host1",
+        user1=user1,
+        pass1_ref="pw1",
+        host2="host2",
+        user2=user2,
+        pass2_ref="pw2",
+        logfile="dummy.log",
+    )
+    domains = DomainHelper.extract_domains_from_spec(spec)
+    assert set(domains) == set(expected_domains)
 
 
 # GeneratorConfig Tests

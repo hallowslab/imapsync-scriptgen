@@ -1,6 +1,6 @@
 import argparse
-from .generator import ScriptGenerator, batch_lines
-from .utils import GeneratorConfig
+from .cli_adapter import UnsafeScriptGenerator
+from .utils import GeneratorConfig, batch_lines
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
         dry_run=args.dry_run,
     )
 
-    generator = ScriptGenerator(cfg)
+    generator = UnsafeScriptGenerator(cfg)
 
     with open(args.input_file) as fh:
         for lines_batch in batch_lines(generator.line_generator(fh), cfg.split):
